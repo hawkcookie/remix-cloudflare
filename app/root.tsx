@@ -1,4 +1,4 @@
-import type { LinksFunction } from "@remix-run/cloudflare";
+import type { LinksFunction, LoaderArgs, LoaderFunction } from "@remix-run/cloudflare";
 import { cssBundleHref } from "@remix-run/css-bundle";
 import {
   Links,
@@ -7,13 +7,23 @@ import {
   Outlet,
   Scripts,
   ScrollRestoration,
+  useLoaderData,
 } from "@remix-run/react";
+import { createClient } from "@supabase/supabase-js";
 
 export const links: LinksFunction = () => [
   ...(cssBundleHref ? [{ rel: "stylesheet", href: cssBundleHref }] : []),
 ];
 
+export const loader: LoaderFunction = async ({context}: LoaderArgs) => {
+  const supabase = createClient(context.SUPABASE_URL!, context.SUPABASE_ANON_KEY!);
+  const {data} = await supabase.from("courses").select()
+  return data;
+};
+
 export default function App() {
+  const res = useLoaderData()
+  console.log(JSON.stringify(res))
   return (
     <html lang="en">
       <head>
@@ -23,6 +33,7 @@ export default function App() {
         <Links />
       </head>
       <body>
+        <code>{JSON.stringify(res)}</code>
         <Outlet />
         <ScrollRestoration />
         <Scripts />
